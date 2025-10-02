@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Debug seeder to check database state
+        $this->call(DebugSeeder::class);
+
+        // Regular seeders
         $this->call([
             DoctorSeeder::class,
             ServiceSeeder::class,
