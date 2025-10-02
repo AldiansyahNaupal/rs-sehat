@@ -1,31 +1,47 @@
-[phases.setup]
-nixPkgs = ["php8.2", "nodejs-18_x", "npm-8_x"]
+[build]
+builder = "nixpacks"
+buildCommand = "composer install --no-dev --optimize-autoloader && npm ci && npm run build"
 
-[phases.build]
-cmds = [
-  "composer install --no-dev --optimize-autoloader",
-  "chmod -R 777 storage bootstrap/cache public",
-  "mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache",
-  "chmod -R 777 storage/framework",
-  "php artisan key:generate --force",
-  "php artisan config:clear",
-  "php artisan cache:clear",
-  "php artisan view:clear",
-  "php artisan migrate:refresh --force",
-  "php artisan db:seed --force",
-  "php artisan storage:link || true",
-  "npm ci",
-  "npm run build",
-  "php artisan optimize"
-]
+[deploy]
+startCommand = "php artisan serve --host=0.0.0.0 --port=$PORT"
+healthcheckPath = "/"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
 
-[phases.deploy]
-cmds = [
-  "echo 'Running database migrations...'",
-  "php artisan migrate --force",
-  "echo 'Running database seeders...'",
-  "php artisan db:seed --force"
-]
+[variables]
+PHP_VERSION = "8.2"
+NODE_VERSION = "18"
+NPM_VERSION = "8"
 
-[start]
-cmd = "php artisan serve --host=0.0.0.0 --port=${PORT}"
+[[deploy.lifecycle.preStart]]
+cmd = "echo 'Setting up storage...'"
+
+[[deploy.lifecycle.preStart]]
+cmd = "chmod -R 777 storage bootstrap/cache"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan storage:link || true"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan key:generate --force"
+
+[[deploy.lifecycle.preStart]]
+cmd = "echo 'Running migrations...'"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan migrate:fresh --force"
+
+[[deploy.lifecycle.preStart]]
+cmd = "echo 'Running seeders...'"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan db:seed --force"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan config:cache"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan route:cache"
+
+[[deploy.lifecycle.preStart]]
+cmd = "php artisan view:cache"
