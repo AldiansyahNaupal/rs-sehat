@@ -1,26 +1,28 @@
 <?php
 
-// Require composer autoloader
-require __DIR__ . '/../vendor/autoload.php';
+// Create required directories in /tmp
+$dirs = [
+    '/tmp/storage/app',
+    '/tmp/storage/framework/cache',
+    '/tmp/storage/framework/sessions',
+    '/tmp/storage/framework/views',
+    '/tmp/storage/logs',
+    '/tmp/bootstrap/cache'
+];
 
-// Load environment variables
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
-
-// Create storage and bootstrap/cache directories if they don't exist
-if (!file_exists(__DIR__ . '/../storage')) {
-    mkdir(__DIR__ . '/../storage');
-    mkdir(__DIR__ . '/../storage/app');
-    mkdir(__DIR__ . '/../storage/framework');
-    mkdir(__DIR__ . '/../storage/framework/cache');
-    mkdir(__DIR__ . '/../storage/framework/sessions');
-    mkdir(__DIR__ . '/../storage/framework/views');
-    mkdir(__DIR__ . '/../storage/logs');
+foreach ($dirs as $dir) {
+    if (!file_exists($dir)) {
+        mkdir($dir, 0777, true);
+    }
 }
 
-if (!file_exists(__DIR__ . '/../bootstrap/cache')) {
-    mkdir(__DIR__ . '/../bootstrap/cache', 0777, true);
+// Create SQLite database
+if (!file_exists('/tmp/database.sqlite')) {
+    touch('/tmp/database.sqlite');
 }
+
+// Set storage path
+$_ENV['STORAGE_PATH'] = '/tmp/storage';
 
 // Forward the request to Laravel
 require __DIR__ . '/../public/index.php';
