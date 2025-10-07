@@ -1,28 +1,22 @@
 <?php
 
-// Create required directories in /tmp
-$dirs = [
-    '/tmp/storage/app',
-    '/tmp/storage/framework/cache',
-    '/tmp/storage/framework/sessions',
-    '/tmp/storage/framework/views',
-    '/tmp/storage/logs',
-    '/tmp/bootstrap/cache'
-];
+// Bootstrap Vercel setup
+require __DIR__ . '/bootstrap.php';
 
-foreach ($dirs as $dir) {
-    if (!file_exists($dir)) {
-        mkdir($dir, 0777, true);
-    }
-}
+// Load Composer's autoloader
+require __DIR__ . '/../vendor/autoload.php';
 
-// Create SQLite database
-if (!file_exists('/tmp/database.sqlite')) {
-    touch('/tmp/database.sqlite');
-}
+// Load environment file
+$app = require_once __DIR__ . '/../bootstrap/app.php';
 
 // Set storage path
-$_ENV['STORAGE_PATH'] = '/tmp/storage';
+$app->useStoragePath('/tmp/storage');
 
-// Forward the request to Laravel
-require __DIR__ . '/../public/index.php';
+// Run the application
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+
+$response = $kernel->handle(
+    $request = Illuminate\Http\Request::capture()
+)->send();
+
+$kernel->terminate($request, $response);
