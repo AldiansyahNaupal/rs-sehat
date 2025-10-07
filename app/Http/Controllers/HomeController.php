@@ -11,10 +11,17 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Ambil data untuk homepage
-        $services = Service::active()->take(6)->get();
-        $articles = Article::published()->latest()->take(3)->get();
-        $doctors = Doctor::active()->take(8)->get();
+        try {
+            // Ambil data untuk homepage
+            $services = Service::active()->take(6)->get();
+            $articles = Article::published()->latest()->take(3)->get();
+            $doctors = Doctor::active()->take(8)->get();
+        } catch (\Exception $e) {
+            // Jika terjadi error database, gunakan data dummy
+            $services = collect([]);
+            $articles = collect([]);
+            $doctors = collect([]);
+        }
         
         // Statistik dummy untuk hero section
         $stats = [
